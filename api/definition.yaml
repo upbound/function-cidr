@@ -1,0 +1,62 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  # must be spec.names.plural+"."+spec.group
+  name: xcidrs.platform.upbound.io
+spec:
+  group: platform.upbound.io
+  names:
+    # cluster scope type
+    kind: XCIDR
+    plural: xcidrs
+  # namespace scope type
+  claimNames:
+    kind: CIDR
+    # lowercase only
+    plural: cidrs
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                parameters:
+                  description: CIDR Input parameters
+                  type: object
+                  properties:
+                    cidrFunc:
+                      type: string
+                      enum:
+                        - cidrsubnet
+                        - cidrsubnets
+                        - cidrhost
+                        - cidrnetmask
+                    prefix:
+                      type: string
+                    newBits:
+                      type: array
+                      items:
+                        type: integer
+                    netNum:
+                      type: integer
+                    providerConfig:
+                      type: string
+                  required:
+                    - prefix
+              required:
+                - parameters
+            status:
+              description: Representing observed state.
+              properties:
+                cidr:
+                  description: CIDR observed status.
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+          required:
+            - spec
+            - status

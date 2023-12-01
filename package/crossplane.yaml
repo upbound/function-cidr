@@ -1,0 +1,18 @@
+---
+apiVersion: meta.pkg.crossplane.io/v1beta1
+kind: Function
+metadata:
+  name: function-cidr
+  annotations:
+    meta.crossplane.io/maintainer: Markus Schweig <humoflife @ github>
+    meta.crossplane.io/source: xpkg.upbound.io/markuss/function-cidr
+    meta.crossplane.io/license: Apache-2.0
+    meta.crossplane.io/description: |
+      A HashiCorp compatible cidr calculation function for
+      cidrhost, cidrnetmask. cidrsubnet. cidrsubmets.
+    meta.crossplane.io/readme: |
+      A HashiCorp compatible cidr calculation function for
+      cidrhost, cidrnetmask. cidrsubnet. cidrsubmets.
+spec:
+  crossplane:
+    version: ">=v1.14.0-up.1"

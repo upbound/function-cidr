@@ -1,0 +1,10 @@
+apiVersion: platform.upbound.io/v1alpha1
+kind: XVPC
+metadata:
+  name: cidr-example
+spec:
+  forFunction:
+    cidr: 10.0.0.0/20
+    newBits:
+      - 8
+    netNum: 3

@@ -1,0 +1,16 @@
+apiVersion: platform.upbound.io/v1alpha1
+kind: XVPC
+metadata:
+  name: cidr-example
+spec:
+  forFunction:
+    cidrBlock: 10.0.0.0/24
+    newBits:
+      - 8
+    azs:
+      - us-east-1
+      - us-east-2
+      - us-west-1
+      - us-west-2
+      - eu-west-1
+    offset: 48

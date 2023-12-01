@@ -1,0 +1,5 @@
+apiVersion: platform.upbound.io/v1alpha1
+kind: XVPC
+metadata:
+  name: cidr-example
+spec:

@@ -1,0 +1,22 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: cidr-example
+spec:
+  compositeTypeRef:
+    apiVersion: platform.upbound.io/v1alpha1
+    kind: XVPC
+  mode: Pipeline
+  pipeline:
+  - step: cidr
+    functionRef:
+      name: function-cidr
+    input:
+      apiVersion: cidr.fn.crossplane.io/v1beta1
+      kind: Parameters
+      cidrFunc: cidrsubnetloop
+      prefixField: spec.forFunction.cidrBlock
+      newBitsField: spec.forFunction.newBits
+      netNumItemsField: spec.forFunction.azs
+      offsetField: spec.forFunction.offset
+      outputField: status.atFunction.cidr.subnets

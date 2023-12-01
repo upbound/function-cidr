@@ -1,0 +1,8 @@
+apiVersion: platform.upbound.io/v1alpha1
+kind: XVPC
+metadata:
+  name: cidr-example
+spec:
+  forFunction:
+    cidrBlock: 10.0.0.0/20
+    hostNum: 111
