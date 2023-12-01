@@ -6,7 +6,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
 	"github.com/crossplane/function-sdk-go/resource"
-	"github.com/humoflife/function-cidr/input/v1beta1"
+	"github.com/upbound/function-cidr/input/v1beta1"
 )
 
 // ValidatePrefixParameter validates prefix parameter

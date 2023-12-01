@@ -10,7 +10,7 @@ import (
 	"github.com/crossplane/function-sdk-go/request"
 	"github.com/crossplane/function-sdk-go/response"
 
-	"github.com/humoflife/function-cidr/input/v1beta1"
+	"github.com/upbound/function-cidr/input/v1beta1"
 )
 
 // Function runs CIDR calculations and composes CIDR resources.

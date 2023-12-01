@@ -28,7 +28,7 @@ xpkg-build-arm64:	## Build ARM64 Composition Function XPKG
 				--embed-runtime-image=runtime-arm64 \
 				--package-file=function-arm64.xpkg
 
-xpkg-push:		## Push XPKG Package Files
+xpkg-push:		## Push XPKG Package Files, Requires Upbound login
 			up xpkg push ${REPO_URL}:${VERSION_TAG} -f ${PACKAGE_FILES}
 
 fn-build:               ## Build Function Code
