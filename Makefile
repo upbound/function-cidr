@@ -10,10 +10,10 @@ help:                   ## Print help for targets with comments
 all:                    docker-build-amd64 docker-build-arm64 xpkg-build-amd64 xpkg-build-arm64 xpkg-push
 
 docker-build-amd64:	## Build AMD64 Docker Image
-			docker buildx build . --quiet --platform=linux/amd64 --tag runtime-amd64
+			docker build . --quiet --platform=linux/amd64 --tag runtime-amd64
 
 docker-build-arm64:	## Build ARM64 Docker Image
-			docker buildx build . --quiet --platform=linux/arm64 --tag runtime-arm64
+			docker build . --quiet --platform=linux/arm64 --tag runtime-arm64
 
 xpkg-build-amd64:	## Build AMD64 Composition Function XPKG
 			crossplane xpkg build \
