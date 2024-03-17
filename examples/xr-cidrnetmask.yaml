@@ -1,0 +1,9 @@
+apiVersion: platform.upbound.io/v1alpha1
+kind: XCIDR
+metadata:
+  name: cidr-netmask
+spec:
+  parameters:
+    cidrFunc: cidrnetmask
+    cidrBlock: 172.16.0.0/12
+    output: status.atFunction.cidr.netmask

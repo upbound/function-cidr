@@ -1,9 +1,11 @@
 apiVersion: platform.upbound.io/v1alpha1
-kind: XVPC
+kind: XCIDR
 metadata:
-  name: cidr-example
+  name: cidr-subnets
 spec:
-  forFunction:
+  parameters:
+    cidrFunc: cidrsubnets
+    cidrBlock: 10.0.0.0/20
     newBits:
       - 8
       - 4

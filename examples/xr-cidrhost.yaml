@@ -1,8 +1,10 @@
 apiVersion: platform.upbound.io/v1alpha1
-kind: XVPC
+kind: XCIDR
 metadata:
-  name: cidr-example
+  name: cidr-host
 spec:
-  forFunction:
+  parameters:
+    cidrFunc: cidrhost
     cidrBlock: 10.0.0.0/20
     hostNum: 111
+    output: status.atFunction.cidr.hostAddress

@@ -28,9 +28,7 @@ cat <<EOF|kubectl apply -f -
 apiVersion: pkg.crossplane.io/v1beta1
 kind: Function
 metadata:
-  name: function-cidr
-  annotations:
-    render.crossplane.io/runtime: Docker
+  name: upbound-function-cidr
 spec:
   package: xpkg.upbound.io/upbound/function-cidr:v0.1.0
 EOF
@@ -73,123 +71,11 @@ field path in the XR.
 The `cidrhost cidrfunc` requires a `hostnum` or `hostnumfield` as
 function input. `hostnum` is an integer.
 
-#### Composition With Default Input / Output Fields
-```
-apiVersion: apiextensions.crossplane.io/v1
-kind: Composition
-metadata:
-  name: vpc
-spec:
-  compositeTypeRef:
-    apiVersion: platform.upbound.io/v1alpha1
-    kind: XVPC
-  mode: Pipeline
-  pipeline:
-  - step: cidr
-    functionRef:
-      name: function-cidr
-    input:
-      apiVersion: cidr.fn.crossplane.io/v1beta1
-      kind: Parameters
-      cidrFunc: cidrhost
-      prefix: "10.0.0.0/20"
-      hostNum: 111
-```
-
-#### Composition With Custom Input / Output Fields
-```
-apiVersion: apiextensions.crossplane.io/v1
-kind: Composition
-metadata:
-  name: vpc
-spec:
-  compositeTypeRef:
-    apiVersion: platform.upbound.io/v1alpha1
-    kind: XVPC
-  mode: Pipeline
-  pipeline:
-  - step: cidr
-    functionRef:
-      name: function-cidr
-    input:
-      apiVersion: cidr.fn.crossplane.io/v1beta1
-      kind: Parameters
-      cidrFunc: cidrhost
-      prefixField: spec.forFunction.cidr
-      hostNumField: spec.forFunction.hostNum
-      outputField: "status.atFunction.cidr.hostAddress"
-```
-#### XR For Composition With Custom Input / Output Fields
-```
-apiVersion: platform.upbound.io/v1alpha1
-kind: XVPC
-metadata:
-  name: cidr-example
-spec:
-  forFunction:
-    cidr: 10.0.0.0/20
-    hostNum: 111
-```
-The function writes its output into the specified `outputfield`.
-```
-apiVersion: platform.upbound.io/v1alpha1
-kind: XVPC
-metadata:
-  name: cidr-example
-status:
-  atFunction:
-    cidr:
-      hostAddress: 10.0.0.111
-```
-
 ### cidrnetmask
 The `cidrnetmask cidrfunc` does not require additional parameters
 beyond the `prefix`. The `prefix` can be read from an XR field
 when the `prefixField` path is specified in the function input
 instead of a `prefix` value.
-
-#### Composition With Default Input / Output Fields
-```
-apiVersion: apiextensions.crossplane.io/v1
-kind: Composition
-metadata:
-  name: cidr-example
-spec:
-  compositeTypeRef:
-    apiVersion: platform.upbound.io/v1alpha1
-    kind: XVPC
-  mode: Pipeline
-  pipeline:
-  - step: cidr
-    functionRef:
-      name: function-cidr
-    input:
-      apiVersion: cidr.fn.crossplane.io/v1beta1
-      kind: Parameters
-      cidrFunc: cidrnetmask
-      prefix: 172.16.0.0/12
-```
-#### XR
-The `cidrnetmask` function does not rely on any fields in the XR.
-```
-apiVersion: platform.upbound.io/v1alpha1
-kind: XVPC
-metadata:
-  name: cidr-example
-spec:
-```
-The function writes its output to the default `status.cidr`
-field unless the function input `outputfield` has been specified.
-```
-apiVersion: platform.upbound.io/v1alpha1
-kind: XVPC
-metadata:
-  name: cidr-example
-status:
-  atFunction:
-    cidr:
-      netmask: 255.240.0.0
-```
 
 ### cidrsubnet
 The `cidrhost cidrsubnet` reauires a `netnum` or `netnumfield`,
@@ -198,110 +84,11 @@ and a `newbits` or `newbitsfield` as function input.
 `netNum` is an integer.
 `newBits` is one integer in an array of integers.
 
-#### Composition With Custom Input / Output Fields
-```
-apiVersion: apiextensions.crossplane.io/v1
-kind: Composition
-metadata:
-  name: cidr-example
-spec:
-  compositeTypeRef:
-    apiVersion: platform.upbound.io/v1alpha1
-    kind: XVPC
-  mode: Pipeline
-  pipeline:
-  - step: cidr
-    functionRef:
-      name: function-cidr
-    input:
-      apiVersion: cidr.fn.crossplane.io/v1beta1
-      kind: Parameters
-      cidrFunc: cidrsubnet
-      prefixField: spec.forFunction.cidr
-      newBitsField: spec.forFunction.newBits
-      netNumField: spec.forFunction.netNum
-      outputField: status.atFunction.cidr.subnet-1
-```
-#### XR For Composition With Custom Input / Output Fields
-```
-apiVersion: platform.upbound.io/v1alpha1
-kind: XVPC
-metadata:
-  name: cidr-example
-spec:
-  forFunction:
-    cidr: 10.0.0.0/20
-    newBits:
-      - 8
-    netNum: 3
-```
-The function writes its output into the specified `outputfield`.
-```
-apiVersion: platform.upbound.io/v1alpha1
-kind: XVPC
-metadata:
-  name: cidr-example
-status:
-  atFunction:
-    cidr:
-      subnet-1: 10.0.0.48/28
-```
-
 ### cidrsubnets
 The `cidrhost cidrsubnets` reauires a `newBits`
  or `newBitsField` as function input.
 
 `newBits` is an array of integers.
-
-#### Composition With Hybrid Default and Custom Input / Output Fields
-```
-apiVersion: apiextensions.crossplane.io/v1
-kind: Composition
-metadata:
-  name: cidr-example
-spec:
-  compositeTypeRef:
-    apiVersion: platform.upbound.io/v1alpha1
-    kind: XVPC
-  mode: Pipeline
-  pipeline:
-  - step: cidr
-    functionRef:
-      name: function-cidr
-    input:
-      apiVersion: cidr.fn.crossplane.io/v1beta1
-      kind: Parameters
-      cidrFunc: cidrsubnets
-      prefix: 10.0.0.0/20
-      newBitsField: spec.forFunction.newBits
-```
-#### XR For Hybrid Composition With Default and Custom Input / Output Fields
-```
-apiVersion: platform.upbound.io/v1alpha1
-kind: XVPC
-metadata:
-  name: cidr-example
-spec:
-  forFunction:
-    newBits:
-      - 8
-      - 4
-      - 2
-```
-The function writes its output into the default `outputfield`.
-```
-apiVersion: platform.upbound.io/v1alpha1
-kind: XVPC
-metadata:
-  name: cidr-example
-status:
-  atFunction:
-    cidr:
-      subnets:
-      - 10.0.0.0/28
-      - 10.0.1.0/24
-      - 10.0.4.0/22
-```
 
 ### cidrsubnetloop
 The `cidrhost cidrsubnetloop` reauires the following input fields.
@@ -317,61 +104,6 @@ calculations in a loop. The `netnum` is calculated during each
 iteration from `iteration`+`offset`. The iterations are either from
 0 to `netNumCount` -1 or from 0 to number of items in `netNumItemsCount`
 or their respective values from their XR field references.
-
-#### Composition With Custom Input / Output Fields
-```
-apiVersion: apiextensions.crossplane.io/v1
-kind: Composition
-metadata:
-  name: cidr-example
-spec:
-  compositeTypeRef:
-    apiVersion: platform.upbound.io/v1alpha1
-    kind: XVPC
-  mode: Pipeline
-  pipeline:
-  - step: cidr
-    functionRef:
-      name: function-cidr
-    input:
-      apiVersion: cidr.fn.crossplane.io/v1beta1
-      kind: Parameters
-      cidrFunc: cidrsubnetloop
-      prefixField: spec.forFunction.cidrBlock
-      newBitsField: spec.forFunction.newBits
-      netNumItemsField: spec.forFunction.azs
-      offsetField: spec.forFunction.offset
-      outputfield: spec.atFunction.cidr.subnets
-```
-#### XR For Composition With Custom Input / Output Fields
-```
-apiVersion: platform.upbound.io/v1alpha1
-kind: XVPC
-metadata:
-  name: cidr-example
-spec:
-  forFunction:
-    cidr: 10.0.0.0/20
-    newBits:
-      - 8
-    netNum: 3
-```
-The function writes its output into the specified `outputField`.
-```
-apiVersion: platform.upbound.io/v1alpha1
-kind: XVPC
-metadata:
-  name: cidr-example
-spec:
-  atFunction:
-    cidr:
-      subnets:
-      - 10.0.0.48/32
-      - 10.0.0.49/32
-      - 10.0.0.50/32
-      - 10.0.0.51/32
-      - 10.0.0.52/32
-```
 
 ## Testing The Function
 Clone the repo. Run `make debug` and in a second terminal run `make render`

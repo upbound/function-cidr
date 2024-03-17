@@ -35,8 +35,6 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		response.Fatal(rsp, errors.Wrapf(err, "cannot get observed composite resource from %T", req))
 		return rsp, nil
 	}
-
-	// Our input is an opaque object nested in a Composition. Let's validate it
 	if err := ValidateParameters(input, oxr); err != nil {
 		response.Fatal(rsp, errors.Wrap(err, "invalid Function input"))
 		return rsp, nil
@@ -73,7 +71,17 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 			return rsp, nil
 		}
 	}
-	switch input.CidrFunc {
+
+	cidrFunc := input.CidrFunc
+	if len(input.CidrFunc) > 0 {
+		cidrFunc, err = oxr.Resource.GetString(input.CidrFunc)
+		if err != nil {
+			response.Fatal(rsp, errors.Wrapf(err, "cannot get cidrFunc from field %s for %s", input.CidrFunc, oxr.Resource.GetKind()))
+			return rsp, nil
+		}
+	}
+
+	switch cidrFunc {
 	// cidrhost calculates the host CIDR from a prefix and a host number.
 	// https://developer.hashicorp.com/terraform/language/functions/cidrhost
 	case "cidrhost":
@@ -90,10 +98,12 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 			response.Fatal(rsp, errors.Wrapf(err, "cannot calculate CIDR host number for %s", oxr.Resource.GetKind()))
 			return rsp, nil
 		}
-		field := "status.atFunction.cidr.host"
-		if len(input.OutputField) > 0 {
-			field = input.OutputField
+
+		field, err := oxr.Resource.GetString(input.OutputField)
+		if err != nil {
+			field = "status.atFunction.cidr.host"
 		}
+
 		err = dxr.Resource.SetString(field, host)
 		if err != nil {
 			response.Fatal(rsp, errors.Wrapf(err, "cannot set field %s to %s for %s", field, host, oxr.Resource.GetKind()))
@@ -108,9 +118,9 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 			response.Fatal(rsp, errors.Wrapf(err, "cannot calculate CIDR netmask for %s", oxr.Resource.GetKind()))
 			return rsp, nil
 		}
-		field := "status.atFunction.cidr.netmask"
-		if len(input.OutputField) > 0 {
-			field = input.OutputField
+		field, err := oxr.Resource.GetString(input.OutputField)
+		if err != nil {
+			field = "status.atFunction.cidr.netmask"
 		}
 		err = dxr.Resource.SetString(field, netmask)
 		if err != nil {
@@ -144,9 +154,9 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 			response.Fatal(rsp, errors.Wrapf(err, "cannot calculate subnet CIDR for %s", oxr.Resource.GetKind()))
 			return rsp, nil
 		}
-		field := "status.atFunction.cidr.subnet"
-		if len(input.OutputField) > 0 {
-			field = input.OutputField
+		field, err := oxr.Resource.GetString(input.OutputField)
+		if err != nil {
+			field = "status.atFunction.cidr.subnet"
 		}
 		err = dxr.Resource.SetString(field, string(cidr))
 		if err != nil {
@@ -177,9 +187,9 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		for _, cidr := range cidrs {
 			cidrSubnetsStringArray = append(cidrSubnetsStringArray, string(cidr))
 		}
-		field := "status.atFunction.cidr.subnets"
-		if len(input.OutputField) > 0 {
-			field = input.OutputField
+		field, err := oxr.Resource.GetString(input.OutputField)
+		if err != nil {
+			field = "status.atFunction.cidr.subnets"
 		}
 		err = dxr.Resource.SetValue(field, cidrSubnetsStringArray)
 		if err != nil {
@@ -242,9 +252,9 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 			}
 			cidrSubnetLoopStringArray = append(cidrSubnetLoopStringArray, string(cidr))
 		}
-		field := "status.atFunction.cidr.subnetloop"
-		if len(input.OutputField) > 0 {
-			field = input.OutputField
+		field, err := oxr.Resource.GetString(input.OutputField)
+		if err != nil {
+			field = "status.atFunction.cidr.subnets"
 		}
 		err = dxr.Resource.SetValue(field, cidrSubnetLoopStringArray)
 		if err != nil {
