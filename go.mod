@@ -1,6 +1,6 @@
 module github.com/upbound/function-cidr
 
-go 1.21.4
+go 1.22.1
 
 require (
 	github.com/alecthomas/kong v0.8.1
