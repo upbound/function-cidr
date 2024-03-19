@@ -38,26 +38,13 @@ test:                   ## Run Code Tests
 			go test -v -cover .
 
 render:                 ## Render Examples, Requires make debug first
-			crossplane beta render \
-				examples/xr-cidrhost.yaml \
-				examples/composition-cidrhost.yaml \
-				examples/functions.yaml
-			crossplane beta render \
-				examples/xr.yaml \
-				examples/composition-cidrnetmask.yaml \
-				examples/functions.yaml
-			crossplane beta render \
-				examples/xr-cidrsubnet.yaml \
-				examples/composition-cidrsubnet.yaml \
-				examples/functions.yaml
-			crossplane beta render \
-				examples/xr-cidrsubnets.yaml \
-				examples/composition-cidrsubnets.yaml \
-				examples/functions.yaml
-			crossplane beta render \
-				examples/xr-cidrsubnetloop.yaml \
-				examples/composition-cidrsubnetloop.yaml \
-				examples/functions.yaml
+			@for file in examples/xr-*.yaml; do \
+				echo "Rendering $$file..."; \
+				crossplane beta render \
+					"$$file" \
+					apis/composition.yaml \
+					examples/functions.yaml; \
+			done
 
 debug:                  ## Run CIDR Function For Rendering Examples
 			go run . --insecure --debug

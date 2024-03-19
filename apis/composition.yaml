@@ -1,0 +1,23 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xcidrs.platform.upbound.io
+spec:
+  compositeTypeRef:
+    apiVersion: platform.upbound.io/v1alpha1
+    kind: XCIDR
+  mode: Pipeline
+  pipeline:
+    - step: cidr
+      functionRef:
+        name: upbound-function-cidr
+      input:
+        apiVersion: cidr.fn.crossplane.io/v1beta1
+        kind: Parameters
+        cidrFunc: spec.parameters.cidrFunc
+        prefixField: spec.parameters.cidrBlock
+        newBitsField: spec.parameters.newBits
+        netNumItemsField: spec.parameters.azs
+        hostNumField: spec.parameters.hostNum
+        offsetField: spec.parameters.offset
+        outputField: spec.parameters.output

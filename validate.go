@@ -138,7 +138,12 @@ func ValidateParameters(p *v1beta1.Parameters, oxr *resource.Composite) *field.E
 		return fieldError
 	}
 
-	switch p.CidrFunc {
+	cidrFunc, err := oxr.Resource.GetString(p.CidrFunc)
+	if err != nil {
+		return field.Required(field.NewPath("parameters"), "cidrFunc is required")
+	}
+
+	switch cidrFunc {
 	case "cidrhost":
 		return ValidateCidrHostParameters(p, *oxr)
 	case "cidrnetmask":

@@ -1,11 +1,8 @@
 apiVersion: pkg.crossplane.io/v1beta1
 kind: Function
 metadata:
-  name: function-cidr
+  name: upbound-function-cidr
   annotations:
-    # use render.crossplane.io/runtime: Docker
-    # for production environments.
     render.crossplane.io/runtime: Development
-    render.crossplane.io/runtime-docker-pull-policy: "Always"
-spec:
-  package: xpkg.upbound.io/upbound/function-cidr:v0.1.0
+# spec:
+#   package: xpkg.upbound.io/upbound/function-cidr:v0.3.0
