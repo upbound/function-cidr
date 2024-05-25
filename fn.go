@@ -177,8 +177,8 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 				return rsp, nil
 			}
 		}
-		cidrs, cidrSubnetsErr := CidrSubnets(prefix, newBits...)
-		if cidrSubnetsErr != nil {
+		cidrs, err := CidrSubnets(prefix, newBits...)
+		if err != nil {
 			response.Fatal(rsp, errors.Wrapf(err, "cannot calculate Subnet CIDRs for %s", oxr.Resource.GetKind()))
 			return rsp, nil
 		}
