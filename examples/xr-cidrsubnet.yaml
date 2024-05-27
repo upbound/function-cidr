@@ -9,4 +9,3 @@ spec:
     newBits:
       - 8
     netNum: 3
-    output: status.atFunction.cidr.subnet-a

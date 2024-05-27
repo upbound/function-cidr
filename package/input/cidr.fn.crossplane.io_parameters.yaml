@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.13.0
+    controller-gen.kubebuilder.io/version: v0.14.0
   name: parameters.cidr.fn.crossplane.io
 spec:
   group: cidr.fn.crossplane.io
@@ -19,78 +19,177 @@ spec:
   - name: v1beta1
     schema:
       openAPIV3Schema:
-        description: Parameters can be used to provide input to this Function.
+        description: |-
+          Parameters can be used to provide input to this Function.
+
+
+          Almost all parameters can be provided as literals or as references to
+          fields on the claim, allowing defaults to be set in the composition and then
+          overridden by the claim.
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
             type: string
           cidrFunc:
-            description: cidrfunc is one of cidrhost, cidrnetmast, cidesubnet, cidrsubnets,
-              cidrsubnetloop
+            description: cidrFunc is the name of the function to call
+            enum:
+            - cidrhost
+            - cidrnetmask
+            - cidrsubnet
+            - cidrsubnets
+            - cidrsubnetloop
+            - multiprefixloop
+            type: string
+          cidrFuncField:
+            description: |-
+              cidrFuncField is a reference to a location on the claim specifying the
+              cidrFunc to call
             type: string
           hostNum:
-            description: hostnum
+            description: |-
+              hostNum  is a whole number that can be represented as a binary integer
+              with no more than the number of digits remaining in the address after
+              the given prefix.
             type: integer
           hostNumField:
-            description: hostnum field
+            description: hostNumField points to a field on the claim that contains
+              the hostNum
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
             type: string
           metadata:
             type: object
+          multiPrefix:
+            description: |-
+              multiPrefix is a list of CIDR blocks to NewBits mappings that are used as
+              input for the `multiprefixloop` function.
+            items:
+              description: MultiPrefix defines an item in a list of CIDR blocks to
+                NewBits mappings
+              properties:
+                newBits:
+                  description: NewBits is a list of bits to allocate to the subnet
+                  items:
+                    type: integer
+                  minItems: 1
+                  type: array
+                  x-kubernetes-list-type: atomic
+                offset:
+                  default: 0
+                  description: |-
+                    Offset is the number of bits to offset the subnet mask by when generating
+                    subnets.
+                  maximum: 32
+                  minimum: 0
+                  type: integer
+                prefix:
+                  description: Prefix is a CIDR block that is used as input for CIDR
+                    calculations
+                  pattern: ^([0-9]{1,3}.){3}[0-9]{1,3}/[0-9]{1,2}$
+                  type: string
+              required:
+              - newBits
+              - prefix
+              type: object
+            type: array
+          multiPrefixField:
+            description: |-
+              multiPrefixField describes a location on the claim that contains the
+              multiPrefix to use as input for the `multiprefixloop` function.
+
+
+              The location referenced should contain a list of MultiPrefix objects.
+            type: string
           netNum:
-            description: netnum
+            description: |-
+              netNum is a whole number that can be represented as a binary integer with
+              no more than newbits binary digits, which will be used to populate the
+              additional bits added to the prefix.
             format: int64
             type: integer
           netNumCount:
-            description: netnumcount
+            description: netNumCount defines how many networks to create from the
+              given prefix
             format: int64
             type: integer
           netNumCountField:
-            description: netnumcount field
+            description: |-
+              netNumCountField points to a field on the claim that contains the
+              netNumCount
             type: string
           netNumField:
-            description: netnum field
+            description: netNumField points to a field on the claim that contains
+              the netNum
             type: string
           netNumItems:
-            description: netnumitems
+            description: |-
+              netNumItems is an array of items whose length may be used to determine
+              how many networks to create from the given prefix.
+
+
+              When this field is defined, its length is compared against `netNumCount`
+              and the larger of the two values is used.
             items:
               type: string
             type: array
           netNumItemsField:
-            description: netnumitems field
+            description: |-
+              netNumItemsField points to a field on the claim that contains the
+              netNumItems
             type: string
           newBits:
-            description: newbits
+            description: |-
+              newbits is the number of additional bits with which to extend the prefix.
+              For example, if given a prefix ending in /16 and a newbits value of 4,
+              the resulting subnet address will have length /20.
             items:
               type: integer
             type: array
           newBitsField:
-            description: newbits field
+            description: newbitsField points to a field on the claim that contains
+              the newBits
             type: string
           offset:
-            description: offset is only used by cidrsubnetloop
+            description: |-
+              offset defines a starting point in the cidr block to start allocating
+              subnets from. If 0, will start from the beginning of the prefix.
+
+
+              This field is mutually exclusive with netNumCount and netNumItems
             type: integer
           offsetField:
-            description: offset field
+            description: |-
+              offsetField defines a location on the claim to take the offset from
+
+
+              This field is mutually exclusive with netNumCount and netNumItems
             type: string
           outputField:
-            description: output field
+            description: |-
+              outputField specifies a location on the XR to patch the results of the
+              function call to.
+
+
+              If this field is not specified, the results will be patched to the status
+              field `status.atFunction.cidr`.
             type: string
           prefix:
             description: prefix is a CIDR block that is used as input for CIDR calculations
             type: string
           prefixField:
-            description: prefix field
+            description: prefixField defines a location on the claim to take the prefix
+              from
             type: string
-        required:
-        - cidrFunc
-        - prefix
         type: object
     served: true
     storage: true
