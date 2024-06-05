@@ -1,0 +1,8 @@
+apiVersion: example.crossplane.io/v1
+kind: XCluster
+metadata:
+  name: net-staging-blue
+  labels:
+    type: cluster
+spec:
+  cidrBlock: 10.0.0.0/20

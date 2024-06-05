@@ -13,3 +13,4 @@ spec:
       - us-west-2
       - us-west-3
     offset: 48
+    output: status.atFunction.cidr.subnetloops
