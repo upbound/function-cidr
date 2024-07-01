@@ -35,7 +35,12 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		response.Fatal(rsp, errors.Wrapf(err, "cannot get observed composite resource from %T", req))
 		return rsp, nil
 	}
-	if err := ValidateParameters(input, oxr); err != nil {
+	dxr, err := request.GetDesiredCompositeResource(req)
+	if err != nil {
+		response.Fatal(rsp, errors.Wrap(err, "cannot get desired composite resource"))
+		return rsp, nil
+	}
+	if err := ValidateParameters(input, oxr, req); err != nil {
 		response.Fatal(rsp, errors.Wrap(err, "invalid Function input"))
 		return rsp, nil
 	}
@@ -45,12 +50,6 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		"oxr-kind", oxr.Resource.GetKind(),
 		"oxr-name", oxr.Resource.GetName(),
 	)
-
-	dxr, err := request.GetDesiredCompositeResource(req)
-	if err != nil {
-		response.Fatal(rsp, errors.Wrap(err, "cannot get desired composite resource"))
-		return rsp, nil
-	}
 
 	dxr.Resource.SetAPIVersion(oxr.Resource.GetAPIVersion())
 	if err != nil {
@@ -65,7 +64,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 
 	prefix := input.Prefix
 	if len(input.PrefixField) > 0 {
-		prefix, err = oxr.Resource.GetString(input.PrefixField)
+		prefix, err = GetPrefixField(input.PrefixField, oxr, req)
 		if err != nil {
 			response.Fatal(rsp, errors.Wrapf(err, "cannot get prefix from field %s for %s", input.PrefixField, oxr.Resource.GetKind()))
 			return rsp, nil
@@ -73,10 +72,10 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 	}
 
 	cidrFunc := input.CidrFunc
-	if len(input.CidrFunc) > 0 {
-		cidrFunc, err = oxr.Resource.GetString(input.CidrFunc)
+	if len(input.CidrFuncField) > 0 {
+		cidrFunc, err = oxr.Resource.GetString(input.CidrFuncField)
 		if err != nil {
-			response.Fatal(rsp, errors.Wrapf(err, "cannot get cidrFunc from field %s for %s", input.CidrFunc, oxr.Resource.GetKind()))
+			response.Fatal(rsp, errors.Wrapf(err, "cannot get cidrFunc from field %s for %s", input.CidrFuncField, oxr.Resource.GetKind()))
 			return rsp, nil
 		}
 	}
@@ -99,9 +98,16 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 			return rsp, nil
 		}
 
-		field, err := oxr.Resource.GetString(input.OutputField)
-		if err != nil {
-			field = "status.atFunction.cidr.host"
+		field := "status.atFunction.cidr.host"
+		if input.Output != "" {
+			field = input.Output
+		} else if input.OutputField != "" {
+			oxrField, err := oxr.Resource.GetString(input.OutputField)
+			if err != nil {
+				response.Fatal(rsp, errors.Wrapf(err, "cannot get output from field %s for %s", input.OutputField, oxr.Resource.GetKind()))
+				return rsp, nil
+			}
+			field = oxrField
 		}
 
 		err = dxr.Resource.SetString(field, host)
@@ -118,9 +124,16 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 			response.Fatal(rsp, errors.Wrapf(err, "cannot calculate CIDR netmask for %s", oxr.Resource.GetKind()))
 			return rsp, nil
 		}
-		field, err := oxr.Resource.GetString(input.OutputField)
-		if err != nil {
-			field = "status.atFunction.cidr.netmask"
+		field := "status.atFunction.cidr.netmask"
+		if input.Output != "" {
+			field = input.Output
+		} else if input.OutputField != "" {
+			oxrField, err := oxr.Resource.GetString(input.OutputField)
+			if err != nil {
+				response.Fatal(rsp, errors.Wrapf(err, "cannot get output from field %s for %s", input.OutputField, oxr.Resource.GetKind()))
+				return rsp, nil
+			}
+			field = oxrField
 		}
 		err = dxr.Resource.SetString(field, netmask)
 		if err != nil {
@@ -154,9 +167,16 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 			response.Fatal(rsp, errors.Wrapf(err, "cannot calculate subnet CIDR for %s", oxr.Resource.GetKind()))
 			return rsp, nil
 		}
-		field, err := oxr.Resource.GetString(input.OutputField)
-		if err != nil {
-			field = "status.atFunction.cidr.subnet"
+		field := "status.atFunction.cidr.subnet"
+		if input.Output != "" {
+			field = input.Output
+		} else if input.OutputField != "" {
+			oxrField, err := oxr.Resource.GetString(input.OutputField)
+			if err != nil {
+				response.Fatal(rsp, errors.Wrapf(err, "cannot get output from field %s for %s", input.OutputField, oxr.Resource.GetKind()))
+				return rsp, nil
+			}
+			field = oxrField
 		}
 		err = dxr.Resource.SetString(field, string(cidr))
 		if err != nil {
@@ -187,9 +207,16 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		for _, cidr := range cidrs {
 			cidrSubnetsStringArray = append(cidrSubnetsStringArray, string(cidr))
 		}
-		field, err := oxr.Resource.GetString(input.OutputField)
-		if err != nil {
-			field = "status.atFunction.cidr.subnets"
+		field := "status.atFunction.cidr.subnets"
+		if input.Output != "" {
+			field = input.Output
+		} else if input.OutputField != "" {
+			oxrField, err := oxr.Resource.GetString(input.OutputField)
+			if err != nil {
+				response.Fatal(rsp, errors.Wrapf(err, "cannot get output from field %s for %s", input.OutputField, oxr.Resource.GetKind()))
+				return rsp, nil
+			}
+			field = oxrField
 		}
 		err = dxr.Resource.SetValue(field, cidrSubnetsStringArray)
 		if err != nil {
@@ -252,9 +279,16 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 			}
 			cidrSubnetLoopStringArray = append(cidrSubnetLoopStringArray, string(cidr))
 		}
-		field, err := oxr.Resource.GetString(input.OutputField)
-		if err != nil {
-			field = "status.atFunction.cidr.subnets"
+		field := "status.atFunction.cidr.subnets"
+		if input.Output != "" {
+			field = input.Output
+		} else if input.OutputField != "" {
+			oxrField, err := oxr.Resource.GetString(input.OutputField)
+			if err != nil {
+				response.Fatal(rsp, errors.Wrapf(err, "cannot get output from field %s for %s", input.OutputField, oxr.Resource.GetKind()))
+				return rsp, nil
+			}
+			field = oxrField
 		}
 		err = dxr.Resource.SetValue(field, cidrSubnetLoopStringArray)
 		if err != nil {

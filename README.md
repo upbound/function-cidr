@@ -54,21 +54,24 @@ Valid values are as follows:
 - cidrsubnets
 - cidrsubnetloop
 ```
-Specify a custom `outputfield` in the function input parameters
+Specify a custom `outputField` in the function input parameters
 when the output should appear at a different path
 than the respective `status.atFunction.cidr` sub field default path.
 
 All `cidrfunc` IP Network Functions require a CIDR `prefix` as input.
 Provide the `prefix` directly in the
-function input or specify a `prefixfield` in the XR where
+function input or specify a `prefixField` in the XR where
 the function shall pick up the `prefix` value.
 
-Function input field names ending in `field` indicate that
-the function shall read the field path value from the specified
-field path in the XR.
+Function input field names ending in `Field` indicate that
+the function shall read the field path value from the specified field path in the XR.
+You can also provide `desired.composite.resource.` and `observed.composite.resource.` in the `prefixField` value to reference
+the resource attribute from where to read the prefix value. See [apis/composition-pipeline.yaml](apis/composition-pipeline.yaml).
+In addition, referencing the pipeline `context` is supported. You can use [gjson](https://github.com/tidwall/gjson)
+for selecting context values. See [apis/composition-pipeline-context.yaml](apis/composition-pipeline-context.yaml).
 
 ### cidrhost
-The `cidrhost cidrfunc` requires a `hostnum` or `hostnumfield` as
+The `cidrhost cidrfunc` requires a `hostnum` or `hostnumField` as
 function input. `hostnum` is an integer.
 
 ### cidrnetmask
@@ -78,8 +81,8 @@ when the `prefixField` path is specified in the function input
 instead of a `prefix` value.
 
 ### cidrsubnet
-The `cidrhost cidrsubnet` reauires a `netnum` or `netnumfield`,
-and a `newbits` or `newbitsfield` as function input.
+The `cidrhost cidrsubnet` reauires a `netnum` or `netnumField`,
+and a `newbits` or `newbitsField` as function input.
 
 `netNum` is an integer.
 `newBits` is one integer in an array of integers.
@@ -95,7 +98,7 @@ The `cidrhost cidrsubnetloop` reauires the following input fields.
 - `newBits` (integer array) or `newBitsField`
 - `netNumCount` (integer) or `netNumCountField`
 - `netNumItems` (string array) or `netNumItemsField`
-- `offset` or `offsetfield`
+- `offset` or `offsetField`
 ** netNumCount and netNumItems are mutually exclusive **
 
 The `cidrsubnetloop` wrapper calculates `cidrsubnet` CIDRs using
@@ -107,5 +110,5 @@ or their respective values from their XR field references.
 
 ## Testing The Function
 Clone the repo. Run `make debug` and in a second terminal run `make render`
-and examine the output. Corresponding compositions and XR yaml can be
-found in the `examples` folder.
+or `make render-pipeline` and examine the output.
+Corresponding compositions and XR yaml can be found in the `examples` folder.

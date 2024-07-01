@@ -10,3 +10,4 @@ spec:
       - 8
       - 4
       - 2
+    output: status.atFunction.cidr.subnets

@@ -19,8 +19,11 @@ type Parameters struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	// cidrfunc is one of cidrhost, cidrnetmast, cidesubnet, cidrsubnets, cidrsubnetloop
-	CidrFunc string `json:"cidrFunc"`
+	// cidrFuncField field
+	CidrFuncField string `json:"cidrFuncField,omitempty"`
+
+	// cidrfunc is one of cidrhost, cidrnetmask, cidrsubnet, cidrsubnets, cidrsubnetloop
+	CidrFunc string `json:"cidrFunc,omitempty"`
 
 	// prefix field
 	PrefixField string `json:"prefixField,omitempty"`
@@ -66,4 +69,7 @@ type Parameters struct {
 
 	// output field
 	OutputField string `json:"outputField,omitempty"`
+
+	// output
+	Output string `json:"output,omitempty"`
 }
