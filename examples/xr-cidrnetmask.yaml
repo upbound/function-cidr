@@ -6,4 +6,3 @@ spec:
   parameters:
     cidrFunc: cidrnetmask
     cidrBlock: 172.16.0.0/12
-    output: status.atFunction.cidr.netmask

@@ -127,23 +127,59 @@ func ValidateCidrSubnetloopParameters(p *v1beta1.Parameters) *field.Error {
 	return nil
 }
 
+func ValidateMultiCidrPrefixParameter(p *v1beta1.Parameters, oxr *resource.Composite) *field.Error {
+	if len(p.MultiPrefix) > 0 && len(p.MultiPrefixField) > 0 {
+		return field.Required(field.NewPath("parameters"), "specify only one of multiPrefix or multiPrefixField to avoid ambiguous function input")
+	}
+
+	if len(p.MultiPrefix) == 0 && p.MultiPrefixField == "" {
+		return field.Required(field.NewPath("parameters"), "either multiPrefix or multiPrefixField function input is required")
+	}
+
+	var multiPrefixes []v1beta1.MultiPrefix = p.MultiPrefix
+	if len(p.MultiPrefix) == 0 {
+		err := oxr.Resource.GetValueInto(p.MultiPrefixField, &multiPrefixes)
+		if err != nil {
+			return field.Required(field.NewPath("parameters"), "cannot get multiPrefixes at multiPrefixField "+p.MultiPrefixField)
+		}
+	}
+
+	for _, mp := range multiPrefixes {
+		_, _, err := net.ParseCIDR(mp.Prefix)
+		if err != nil {
+			return field.Required(field.NewPath("parameters"), "invalid CIDR prefix address "+mp.Prefix)
+		}
+
+		if len(mp.NewBits) == 0 {
+			return field.Required(field.NewPath("parameters"), "newBits is required for each prefix in multiPrefixField")
+		}
+	}
+
+	return nil
+}
+
 // ValidateParameters validates the Parameters object.
 func ValidateParameters(p *v1beta1.Parameters, oxr *resource.Composite) *field.Error {
-	if p.CidrFunc == "" {
-		return field.Required(field.NewPath("parameters"), "cidrFunc is required")
+	var cidrFunc string = p.CidrFunc
+	var err error
+
+	if p.CidrFuncField != "" {
+		cidrFunc, err = oxr.Resource.GetString(p.CidrFuncField)
+		if err != nil {
+			return field.Required(field.NewPath("parameters"), "cannot get cidrFunc at cidrFuncField "+p.CidrFuncField)
+		}
 	}
 
-	fieldError := ValidatePrefixParameter(p.Prefix, p.PrefixField, oxr)
-	if fieldError != nil {
-		return fieldError
-	}
-
-	cidrFunc, err := oxr.Resource.GetString(p.CidrFunc)
-	if err != nil {
-		return field.Required(field.NewPath("parameters"), "cidrFunc is required")
+	if cidrFunc != "multiprefixloop" {
+		fieldError := ValidatePrefixParameter(p.Prefix, p.PrefixField, oxr)
+		if fieldError != nil {
+			return fieldError
+		}
 	}
 
 	switch cidrFunc {
+	case "":
+		return field.Required(field.NewPath("parameters"), "cidrFunc is required")
 	case "cidrhost":
 		return ValidateCidrHostParameters(p, *oxr)
 	case "cidrnetmask":
@@ -154,7 +190,9 @@ func ValidateParameters(p *v1beta1.Parameters, oxr *resource.Composite) *field.E
 		return ValidateCidrSubnetsParameters(p, *oxr)
 	case "cidrsubnetloop":
 		return ValidateCidrSubnetloopParameters(p)
+	case "multiprefixloop":
+		return ValidateMultiCidrPrefixParameter(p, oxr)
 	default:
-		return field.Required(field.NewPath("parameters"), "unexpected cidrFunc "+p.CidrFunc)
+		return field.Required(field.NewPath("parameters"), "unexpected cidrFunc "+cidrFunc)
 	}
 }

@@ -14,10 +14,10 @@ spec:
       input:
         apiVersion: cidr.fn.crossplane.io/v1beta1
         kind: Parameters
-        cidrFunc: spec.parameters.cidrFunc
+        cidrFuncField: spec.parameters.cidrFunc
         prefixField: spec.parameters.cidrBlock
         newBitsField: spec.parameters.newBits
         netNumItemsField: spec.parameters.azs
         hostNumField: spec.parameters.hostNum
         offsetField: spec.parameters.offset
-        outputField: spec.parameters.output
+        multiPrefixField: spec.parameters.subnets

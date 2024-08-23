@@ -35,6 +35,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		response.Fatal(rsp, errors.Wrapf(err, "cannot get observed composite resource from %T", req))
 		return rsp, nil
 	}
+
 	if err := ValidateParameters(input, oxr); err != nil {
 		response.Fatal(rsp, errors.Wrap(err, "invalid Function input"))
 		return rsp, nil
@@ -53,18 +54,20 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 	}
 
 	dxr.Resource.SetAPIVersion(oxr.Resource.GetAPIVersion())
-	if err != nil {
-		response.Fatal(rsp, errors.Wrapf(err, "cannot set ApiVersion %s for %s", oxr.Resource.GetAPIVersion(), oxr.Resource.GetKind()))
-		return rsp, nil
-	}
 	dxr.Resource.SetKind(oxr.Resource.GetKind())
-	if err != nil {
-		response.Fatal(rsp, errors.Wrapf(err, "cannot set kind %s", oxr.Resource.GetKind()))
-		return rsp, nil
-	}
 
-	prefix := input.Prefix
-	if len(input.PrefixField) > 0 {
+	cidrFunc := input.CidrFunc
+	if len(input.CidrFuncField) > 0 {
+		cidrFunc, err = oxr.Resource.GetString(input.CidrFuncField)
+		if err != nil {
+			response.Fatal(rsp, errors.Wrapf(err, "cannot get cidrFunc from field %s for %s", input.CidrFunc, oxr.Resource.GetKind()))
+			return rsp, nil
+		}
+	}
+	log.Info("Running function", "cidrFunc", cidrFunc)
+
+	var prefix string = input.Prefix
+	if cidrFunc != "multiprefixloop" && len(input.PrefixField) > 0 {
 		prefix, err = oxr.Resource.GetString(input.PrefixField)
 		if err != nil {
 			response.Fatal(rsp, errors.Wrapf(err, "cannot get prefix from field %s for %s", input.PrefixField, oxr.Resource.GetKind()))
@@ -72,13 +75,9 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		}
 	}
 
-	cidrFunc := input.CidrFunc
-	if len(input.CidrFunc) > 0 {
-		cidrFunc, err = oxr.Resource.GetString(input.CidrFunc)
-		if err != nil {
-			response.Fatal(rsp, errors.Wrapf(err, "cannot get cidrFunc from field %s for %s", input.CidrFunc, oxr.Resource.GetKind()))
-			return rsp, nil
-		}
+	var field string = input.OutputField
+	if field == "" {
+		field = "status.atFunction.cidr"
 	}
 
 	switch cidrFunc {
@@ -99,11 +98,6 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 			return rsp, nil
 		}
 
-		field, err := oxr.Resource.GetString(input.OutputField)
-		if err != nil {
-			field = "status.atFunction.cidr.host"
-		}
-
 		err = dxr.Resource.SetString(field, host)
 		if err != nil {
 			response.Fatal(rsp, errors.Wrapf(err, "cannot set field %s to %s for %s", field, host, oxr.Resource.GetKind()))
@@ -118,10 +112,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 			response.Fatal(rsp, errors.Wrapf(err, "cannot calculate CIDR netmask for %s", oxr.Resource.GetKind()))
 			return rsp, nil
 		}
-		field, err := oxr.Resource.GetString(input.OutputField)
-		if err != nil {
-			field = "status.atFunction.cidr.netmask"
-		}
+
 		err = dxr.Resource.SetString(field, netmask)
 		if err != nil {
 			response.Fatal(rsp, errors.Wrapf(err, "cannot set field %s to %s for %s", field, netmask, oxr.Resource.GetKind()))
@@ -154,10 +145,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 			response.Fatal(rsp, errors.Wrapf(err, "cannot calculate subnet CIDR for %s", oxr.Resource.GetKind()))
 			return rsp, nil
 		}
-		field, err := oxr.Resource.GetString(input.OutputField)
-		if err != nil {
-			field = "status.atFunction.cidr.subnet"
-		}
+
 		err = dxr.Resource.SetString(field, string(cidr))
 		if err != nil {
 			response.Fatal(rsp, errors.Wrapf(err, "cannot set field %s to %s for %s", field, string(cidr), oxr.Resource.GetKind()))
@@ -187,10 +175,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		for _, cidr := range cidrs {
 			cidrSubnetsStringArray = append(cidrSubnetsStringArray, string(cidr))
 		}
-		field, err := oxr.Resource.GetString(input.OutputField)
-		if err != nil {
-			field = "status.atFunction.cidr.subnets"
-		}
+
 		err = dxr.Resource.SetValue(field, cidrSubnetsStringArray)
 		if err != nil {
 			response.Fatal(rsp, errors.Wrapf(err, "cannot set field %s to %s for %s", field, cidrSubnetsStringArray, oxr.Resource.GetKind()))
@@ -244,6 +229,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 				return rsp, nil
 			}
 		}
+
 		for netNum = 0; netNum < netNumCount; netNum++ {
 			cidr, cidrSubnetErr := CidrSubnet(prefix, newBits[0], netNum+offset)
 			if cidrSubnetErr != nil {
@@ -252,13 +238,63 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 			}
 			cidrSubnetLoopStringArray = append(cidrSubnetLoopStringArray, string(cidr))
 		}
-		field, err := oxr.Resource.GetString(input.OutputField)
-		if err != nil {
-			field = "status.atFunction.cidr.subnets"
-		}
+
 		err = dxr.Resource.SetValue(field, cidrSubnetLoopStringArray)
 		if err != nil {
 			response.Fatal(rsp, errors.Wrapf(err, "cannot set field %s to %s for %s", field, cidrSubnetLoopStringArray, oxr.Resource.GetKind()))
+			return rsp, nil
+		}
+
+	// multiprefix is a convenience wrapper around cidrsubnets that	loops over a
+	// range of prefixes to create a list of subnets for each prefix.
+	case "multiprefixloop":
+		var subnetsByCidr map[string][]string = make(map[string][]string)
+		var multiPrefixes []v1beta1.MultiPrefix
+
+		multiPrefixes = input.MultiPrefix
+		if len(input.MultiPrefixField) > 0 {
+			err = oxr.Resource.GetValueInto(input.MultiPrefixField, &multiPrefixes)
+			if err != nil {
+				response.Fatal(rsp, errors.Wrapf(err, "cannot get multiprefix from field %s for %s", input.MultiPrefixField, oxr.Resource.GetKind()))
+				return rsp, nil
+			}
+		}
+
+		for _, multiPrefix := range multiPrefixes {
+			prefix := multiPrefix.Prefix
+			if len(prefix) == 0 {
+				continue
+			}
+
+			newBits := multiPrefix.NewBits
+			if len(newBits) == 0 {
+				continue
+			}
+
+			if multiPrefix.Offset > 0 {
+				newBits = append([]int{multiPrefix.Offset}, newBits...)
+			}
+
+			cidrs, err := CidrSubnets(prefix, newBits...)
+			if err != nil {
+				response.Fatal(rsp, errors.Wrapf(err, "cannot calculate Subnet CIDRs for %s", oxr.Resource.GetKind()))
+				return rsp, nil
+			}
+
+			var cidrSubnetsStringArray []string
+			for _, cidr := range cidrs {
+				cidrSubnetsStringArray = append(cidrSubnetsStringArray, string(cidr))
+			}
+
+			subnetsByCidr[prefix] = cidrSubnetsStringArray
+			if multiPrefix.Offset > 0 {
+				subnetsByCidr[prefix] = cidrSubnetsStringArray[1:]
+			}
+		}
+
+		err = dxr.Resource.SetValue(field, subnetsByCidr)
+		if err != nil {
+			response.Fatal(rsp, errors.Wrapf(err, "cannot set field %s to %s for %s", field, subnetsByCidr, oxr.Resource.GetKind()))
 			return rsp, nil
 		}
 
