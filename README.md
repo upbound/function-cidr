@@ -94,24 +94,38 @@ The `cidrnetmask cidrfunc` does not require additional parameters beyond the
 is specified in the function input instead of a `prefix` value.
 
 ### cidrsubnet
+<<<<<<< HEAD
 
 The `cidrhost cidrsubnet` requires a `netnum` or `netnumfield`, and a `newbits`
 or `newbitsfield` as function input.
+=======
+The `cidrhost cidrsubnet` requires a `netnum` or `netnumfield`,
+and a `newbits` or `newbitsfield` as function input.
+>>>>>>> 02dec5c (fixing typo)
 
 `netNum` is an integer.
 `newBits` is one integer in an array of integers.
 
 ### cidrsubnets
+<<<<<<< HEAD
 
 The `cidrhost cidrsubnets` requires a `newBits` or `newBitsField` as function
 input.
+=======
+The `cidrhost cidrsubnets` requires a `newBits`
+ or `newBitsField` as function input.
+>>>>>>> 02dec5c (fixing typo)
 
 `newBits` is an array of integers.
 
 ### cidrsubnetloop
+<<<<<<< HEAD
 
 The `cidrhost cidrsubnetloop` reauires the following input fields.
 
+=======
+The `cidrhost cidrsubnetloop` requires the following input fields.
+>>>>>>> 02dec5c (fixing typo)
 - `newBits` (integer array) or `newBitsField`
 - `netNumCount` (integer) or `netNumCountField`
 - `netNumItems` (string array) or `netNumItemsField`
