@@ -110,7 +110,7 @@ input.
 
 ### cidrsubnetloop
 
-The `cidrhost cidrsubnetloop` reauires the following input fields.
+The `cidrhost cidrsubnetloop` requires the following input fields.
 
 - `newBits` (integer array) or `newBitsField`
 - `netNumCount` (integer) or `netNumCountField`
