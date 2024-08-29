@@ -59,7 +59,7 @@ spec:
                       type: integer
                     offset:
                       type: integer
-                    output:
+                    outputField:
                       type: string
               required:
                 - parameters

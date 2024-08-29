@@ -129,6 +129,7 @@ func TestRunFunction(t *testing.T) {
 				err: nil,
 			},
 		},
+
 		"cidr-netmask": {
 			reason: "should return the CIDR netmask of the request",
 			args: args{
@@ -166,6 +167,7 @@ func TestRunFunction(t *testing.T) {
 				err: nil,
 			},
 		},
+
 		"cidr-subnets": {
 			reason: "should return the cidr subnet of the request",
 			args: args{
@@ -231,6 +233,7 @@ func TestRunFunction(t *testing.T) {
 				err: nil,
 			},
 		},
+
 		"cidr-subnetloop": {
 			reason: "should return the cidr subnet of the request",
 			args: args{
@@ -291,6 +294,7 @@ func TestRunFunction(t *testing.T) {
 				err: nil,
 			},
 		},
+
 		"multi-prefix-loop": {
 			reason: "should return multiple cidr subnets for the request",
 			args: args{
@@ -405,6 +409,189 @@ func TestRunFunction(t *testing.T) {
 				err: nil,
 			},
 		},
+
+		"cidr-subnets-from-context": {
+			reason: "should return the cidr subnet of the prefixField retrieved from the context",
+			args: args{
+				ctx: context.Background(),
+				req: &fnv1beta1.RunFunctionRequest{
+					Context: &structpb.Struct {
+						Fields: map[string]*structpb.Value {
+							"apiextensions.crossplane.io/extra-resources": structpb.NewStructValue(resource.MustStructJSON(`{
+									"XCluster": [
+        							    {
+        							        "apiVersion": "example.crossplane.io/v1",
+        							        "kind": "XCluster",
+        							        "spec": {
+        							            "cidrBlock": "10.0.0.0/20"
+        							        }
+        							    }
+        							]
+
+							}`)),
+						},
+					},
+					Input: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"cidrFunc": {
+								Kind: &structpb.Value_StringValue{
+									StringValue: "cidrsubnets",
+								},
+							},
+							"prefixField": {
+								Kind: &structpb.Value_StringValue{
+									StringValue: "context.apiextensions\\.crossplane\\.io/extra-resources.XCluster.0.spec.cidrBlock",
+								},
+							},
+							"newBits": {
+								Kind: &structpb.Value_ListValue{
+									ListValue: &structpb.ListValue{
+										Values: []*structpb.Value{
+											{
+												Kind: &structpb.Value_NumberValue{
+													NumberValue: 1,
+												},
+											},
+											{
+												Kind: &structpb.Value_NumberValue{
+													NumberValue: 1,
+												},
+											},
+										},
+									},
+								},
+							},
+							"outputField": {
+								Kind: &structpb.Value_StringValue{
+									StringValue: "status.atFunction.cidr.partitions",
+								},
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				rsp: &fnv1beta1.RunFunctionResponse{
+					Desired: &fnv1beta1.State{
+						Composite: &fnv1beta1.Resource{
+							Resource: resource.MustStructJSON(`{"apiVersion":"","kind":"","status": {"atFunction": {"cidr": {"partitions": ["10.0.0.0/21", "10.0.8.0/21"]}}}}`),
+						},
+					},
+					Context: &structpb.Struct {
+						Fields: map[string]*structpb.Value {
+							"apiextensions.crossplane.io/extra-resources": structpb.NewStructValue(resource.MustStructJSON(`{
+									"XCluster": [
+        							    {
+        							        "apiVersion": "example.crossplane.io/v1",
+        							        "kind": "XCluster",
+        							        "spec": {
+        							            "cidrBlock": "10.0.0.0/20"
+        							        }
+        							    }
+        							]
+
+							}`)),
+						},
+					},
+					Meta: &fnv1beta1.ResponseMeta{
+						Ttl: &durationpb.Duration{
+							Seconds: 60,
+						},
+					},
+				},
+				err: nil,
+			},
+		},
+
+		"cidr-subnets-from-desired": {
+			reason: "should return the cidr subnet of the prefixField retrieved from the desired field",
+			args: args{
+				ctx: context.Background(),
+				req: &fnv1beta1.RunFunctionRequest{
+					Desired: &fnv1beta1.State{
+						Composite: &fnv1beta1.Resource{
+							Resource: resource.MustStructJSON(`{
+								"apiVersion": "platform.upbound.io/v1alpha1",
+								"kind": "XCIDR",
+                                "status": {
+									"atFunction": {
+										"cidr": {
+											"partitions": ["10.0.0.0/21"]
+										}
+									}
+								}
+							}`),
+						},
+					},
+					Input: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"cidrFunc": {
+								Kind: &structpb.Value_StringValue{
+									StringValue: "cidrsubnets",
+								},
+							},
+							"prefixField": {
+								Kind: &structpb.Value_StringValue{
+									StringValue: "desired.composite.resource.status.atFunction.cidr.partitions[0]",
+								},
+							},
+							"newBits": {
+								Kind: &structpb.Value_ListValue{
+									ListValue: &structpb.ListValue{
+										Values: []*structpb.Value{
+											{
+												Kind: &structpb.Value_NumberValue{
+													NumberValue: 1,
+												},
+											},
+											{
+												Kind: &structpb.Value_NumberValue{
+													NumberValue: 1,
+												},
+											},
+										},
+									},
+								},
+							},
+							"outputField": {
+								Kind: &structpb.Value_StringValue{
+									StringValue: "status.atFunction.cidr.private.subnets",
+								},
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				rsp: &fnv1beta1.RunFunctionResponse{
+					Desired: &fnv1beta1.State{
+						Composite: &fnv1beta1.Resource{
+							Resource: resource.MustStructJSON(`{
+								"apiVersion":"",
+								"kind":"",
+								"status": {
+									"atFunction": {
+										"cidr": {
+											"private": {
+												"subnets": ["10.0.0.0/22", "10.0.4.0/22"]
+											},
+											"partitions": ["10.0.0.0/21"]
+										}
+									}
+								}
+							}`),
+						},
+					},
+					Meta: &fnv1beta1.ResponseMeta{
+						Ttl: &durationpb.Duration{
+							Seconds: 60,
+						},
+					},
+				},
+				err: nil,
+			},
+		},
+
 	}
 
 	for name, tc := range cases {

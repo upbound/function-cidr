@@ -95,7 +95,7 @@ type Parameters struct {
 	// +optional
 	HostNumField string `json:"hostNumField,omitempty"`
 
-	// hostNum  is a whole number that can be represented as a binary integer
+	// hostNum is a whole number that can be represented as a binary integer
 	// with no more than the number of digits remaining in the address after
 	// the given prefix.
 	//

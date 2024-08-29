@@ -70,21 +70,26 @@ Valid values are as follows:
 - multiprefixloop
 ```
 
-Specify a custom `outputfield` in the function input parameters when the output
+Specify a custom `outputField` in the function input parameters when the output
 should appear at a different path than the respective `status.atFunction.cidr`
 sub field default path.
 
 All `cidrfunc` IP Network Functions require a CIDR `prefix` as input.
 
-Provide the `prefix` directly in the function input or specify a `prefixfield`
+Provide the `prefix` directly in the function input or specify a `prefixField`
 in the XR where the function shall pick up the `prefix` value.
 
-Function input field names ending in `field` indicate that the function shall
+Function input field names ending in `Field` indicate that the function shall
 read the field path value from the specified field path in the XR.
+
+You can also provide `desired.composite.resource.` and `desired.resources.` in the `prefixField` value to reference
+the resource attribute from where to read the prefix value. See [apis/composition-pipeline.yaml](apis/composition-pipeline.yaml).
+In addition, referencing the pipeline `context` is supported. You can use [gjson](https://github.com/tidwall/gjson)
+for selecting context values. See [apis/composition-pipeline-context.yaml](apis/composition-pipeline-context.yaml).
 
 ### cidrhost
 
-The `cidrhost cidrfunc` requires a `hostnum` or `hostnumfield` as
+The `cidrhost cidrfunc` requires a `hostnum` or `hostnumField` as
 function input. `hostnum` is an integer.
 
 ### cidrnetmask
@@ -115,7 +120,7 @@ The `cidrhost cidrsubnetloop` requires the following input fields.
 - `newBits` (integer array) or `newBitsField`
 - `netNumCount` (integer) or `netNumCountField`
 - `netNumItems` (string array) or `netNumItemsField`
-- `offset` or `offsetfield`
+- `offset` or `offsetField`
 
 **`netNumCount` and `netNumItems` are mutually exclusive**
 
@@ -148,5 +153,5 @@ before calculations and then removed after the calculation is completed.
 ## Testing The Function
 
 Clone the repo. Run `make debug` and in a second terminal run `make render`
-and examine the output. Corresponding compositions and XR yaml can be found in
-the `examples` folder.
+or `make render-pipeline` and examine the output. Corresponding compositions and XR
+yaml can be found in the `examples` folder.
