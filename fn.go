@@ -36,7 +36,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		return rsp, nil
 	}
 
-	if err := ValidateParameters(input, oxr); err != nil {
+	if err := ValidateParameters(input, oxr, req); err != nil {
 		response.Fatal(rsp, errors.Wrap(err, "invalid Function input"))
 		return rsp, nil
 	}
@@ -68,7 +68,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 
 	var prefix string = input.Prefix
 	if cidrFunc != "multiprefixloop" && len(input.PrefixField) > 0 {
-		prefix, err = oxr.Resource.GetString(input.PrefixField)
+		prefix, err = GetPrefixField(input.PrefixField, oxr, req)
 		if err != nil {
 			response.Fatal(rsp, errors.Wrapf(err, "cannot get prefix from field %s for %s", input.PrefixField, oxr.Resource.GetKind()))
 			return rsp, nil

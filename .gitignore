@@ -23,4 +23,6 @@ go.work
 .golangci.yml
 *.xpkg
 function-cidr
+.idea
 .vscode
+*__debug_bin*

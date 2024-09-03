@@ -1,27 +1,119 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"net"
+	"strings"
+
+	"github.com/pkg/errors"
+
+	"github.com/tidwall/gjson"
 
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
+	fnv1beta1 "github.com/crossplane/function-sdk-go/proto/v1beta1"
+	"github.com/crossplane/function-sdk-go/request"
 	"github.com/crossplane/function-sdk-go/resource"
+
 	"github.com/upbound/function-cidr/input/v1beta1"
 )
 
+// ExtractKeys extracts keys from a dotted list of keys while considering quoted strings a single value.
+func ExtractKeys(input string) []string {
+	var keys []string
+	var keyBuilder strings.Builder
+	inQuotes := false
+
+	for i := 0; i < len(input); i++ {
+		char := input[i]
+
+		if char == '\'' {
+			inQuotes = !inQuotes
+		} else if char == '.' && !inQuotes {
+			keys = append(keys, keyBuilder.String())
+			keyBuilder.Reset()
+		} else {
+			keyBuilder.WriteByte(char)
+		}
+	}
+
+	if keyBuilder.Len() > 0 {
+		keys = append(keys, keyBuilder.String())
+	}
+
+	return keys
+}
+
+// GetPrefixField returns the prefix value from the defined field
+func GetPrefixField(prefixField string, oxr *resource.Composite, req *fnv1beta1.RunFunctionRequest) (string, error) {
+	prefix := ""
+	if strings.HasPrefix(prefixField, "desired.") {
+		if strings.HasPrefix(prefixField, "desired.composite.") {
+			dxr, err := request.GetDesiredCompositeResource(req)
+			if err != nil {
+				return "", errors.Wrapf(err, "cannot get desired composite resource from %s for %s", prefixField, dxr.Resource.GetKind())
+			}
+			dxrPrefix, err := dxr.Resource.GetString(strings.Replace(prefixField, "desired.composite.resource.", "", 1))
+			prefix = dxrPrefix
+			if err != nil {
+				return "", errors.Wrapf(err, "cannot get prefix from field %s for %s", prefixField, dxr.Resource.GetKind())
+			}
+		} else if strings.HasPrefix(prefixField, "desired.resources.") {
+			properties := ExtractKeys(strings.Replace(prefixField, "desired.resources.", "", 1))
+			resourceName := resource.Name(properties[0])
+			dxr, err := request.GetDesiredComposedResources(req)
+			if err != nil {
+				return "", errors.Wrapf(err, "cannot get desired composed resource from %s", prefixField)
+			}
+			if val, ok := dxr[resourceName]; ok {
+				dxrPrefix, err := val.Resource.GetString(strings.Replace(prefixField, "desired.resources."+properties[0]+".resource.", "", 1))
+				prefix = dxrPrefix
+				if err != nil {
+					return "", errors.Wrapf(err, "cannot get prefix for resource with name %s from field %s", resourceName, prefixField)
+				}
+			} else {
+				return "", errors.New(fmt.Sprintf("No composed resource with name %s found for field %s", resourceName, prefixField))
+			}
+		}
+	} else if strings.HasPrefix(prefixField, "context.") {
+		ctxField := strings.Replace(prefixField, "context.", "", 1)
+		ctx := req.Context
+		if ctx == nil {
+			return "", errors.New("No context available")
+		}
+		json, err := json.Marshal(ctx)
+		if err != nil {
+			return "", errors.Wrapf(err, "failed to marshall context to json for extraction of field %s", prefixField)
+		}
+		prefixValue := gjson.GetBytes(json, ctxField)
+		if !prefixValue.Exists() {
+			return "", errors.New(fmt.Sprintf("Failed to extract value for %s from json context %s", ctxField, json))
+		}
+		prefix = prefixValue.Str
+	} else {
+		prefixValue, err := oxr.Resource.GetString(prefixField)
+		prefix = prefixValue
+		if err != nil {
+			return "", errors.Wrapf(err, "cannot get prefix from field %s for %s", prefixField, oxr.Resource.GetKind())
+		}
+	}
+	return prefix, nil
+}
+
 // ValidatePrefixParameter validates prefix parameter
-func ValidatePrefixParameter(prefix, prefixField string, oxr *resource.Composite) *field.Error {
+func ValidatePrefixParameter(prefix, prefixField string, oxr *resource.Composite, req *fnv1beta1.RunFunctionRequest) *field.Error {
 	if len(prefix) > 0 && len(prefixField) > 0 {
-		return field.Required(field.NewPath("parameters"), "specify only one of prefix or prefixfield to avoid ambiguous function input")
+		return field.Required(field.NewPath("parameters"), "specify only one of prefix or prefixField to avoid ambiguous function input")
 	}
 	if prefix == "" {
 		if prefixField == "" {
-			return field.Required(field.NewPath("parameters"), "either prefix or prefixfield function input is required")
+			return field.Required(field.NewPath("parameters"), "either prefix or prefixField function input is required")
 		}
-		oxrPrefix, err := oxr.Resource.GetString(prefixField)
+		oxrPrefix, err := GetPrefixField(prefixField, oxr, req)
 		prefix = oxrPrefix
 		if err != nil {
-			return field.Required(field.NewPath("parameters"), "cannot get prefix at prefixfield "+prefixField)
+			return field.Required(field.NewPath("parameters"), errors.Wrapf(err, "cannot get prefix at prefixField "+prefixField).Error())
 		}
 	}
 
@@ -159,7 +251,7 @@ func ValidateMultiCidrPrefixParameter(p *v1beta1.Parameters, oxr *resource.Compo
 }
 
 // ValidateParameters validates the Parameters object.
-func ValidateParameters(p *v1beta1.Parameters, oxr *resource.Composite) *field.Error {
+func ValidateParameters(p *v1beta1.Parameters, oxr *resource.Composite, req *fnv1beta1.RunFunctionRequest) *field.Error {
 	var cidrFunc string = p.CidrFunc
 	var err error
 
@@ -171,7 +263,7 @@ func ValidateParameters(p *v1beta1.Parameters, oxr *resource.Composite) *field.E
 	}
 
 	if cidrFunc != "multiprefixloop" {
-		fieldError := ValidatePrefixParameter(p.Prefix, p.PrefixField, oxr)
+		fieldError := ValidatePrefixParameter(p.Prefix, p.PrefixField, oxr, req)
 		if fieldError != nil {
 			return fieldError
 		}

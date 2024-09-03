@@ -1,0 +1,29 @@
+apiVersion: pkg.crossplane.io/v1beta1
+kind: Function
+metadata:
+  name: upbound-function-cidr
+  annotations:
+    render.crossplane.io/runtime: Development
+# spec:
+#   package: xpkg.upbound.io/upbound/function-cidr:v0.3.0
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: Function
+metadata:
+  name: function-go-templating
+  annotations:
+    render.crossplane.io/runtime-docker-cleanup: "Orphan"
+spec:
+  package: xpkg.upbound.io/crossplane-contrib/function-go-templating:v0.5.0
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: Function
+metadata:
+  name: function-extra-resources
+  annotations:
+    render.crossplane.io/runtime-docker-cleanup: "Orphan"
+    # This tells crossplane beta render to connect to the function locally.
+    #render.crossplane.io/runtime: Development
+spec:
+  # This is ignored when using the Development runtime.
+  package: xpkg.upbound.io/crossplane-contrib/function-extra-resources:v0.0.3

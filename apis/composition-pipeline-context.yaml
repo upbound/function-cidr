@@ -1,0 +1,100 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xcidrs.platform.upbound.io
+spec:
+  compositeTypeRef:
+    apiVersion: platform.upbound.io/v1alpha1
+    kind: XCIDR
+  mode: Pipeline
+  pipeline:
+    - step: pull-extra-resources
+      functionRef:
+        name: function-extra-resources
+      input:
+        apiVersion: extra-resources.fn.crossplane.io/v1beta1
+        kind: Input
+        spec:
+          extraResources:
+            - kind: XCluster
+              into: XCluster
+              apiVersion: example.crossplane.io/v1
+              type: Selector
+              selector:
+                maxMatch: 2
+                minMatch: 1
+                matchLabels:
+                  - key: type
+                    type: Value
+                    value: cluster
+    - step: debug-context
+      functionRef:
+        name: function-go-templating
+      input:
+        apiVersion: gotemplate.fn.crossplane.io/v1beta1
+        kind: GoTemplate
+        source: Inline
+        inline:
+          template: |
+            apiVersion: test.my-domain.com/v1alpha1
+            kind: DebugContext
+            metadata:
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: debug-context
+            debug:
+            {{ . | toYaml | nindent 2 }}
+    - step: cidr-subnets-partitions
+      functionRef:
+        name: upbound-function-cidr
+      input:
+        apiVersion: cidr.fn.crossplane.io/v1beta1
+        kind: Parameters
+        cidrFunc: cidrsubnets
+        prefixField: context.apiextensions\.crossplane\.io/extra-resources.XCluster.0.spec.cidrBlock
+        newBits:
+          - 1
+          - 1
+        outputField: status.atFunction.cidr.partitions
+    - step: cidr-subnets-private
+      functionRef:
+        name: upbound-function-cidr
+      input:
+        apiVersion: cidr.fn.crossplane.io/v1beta1
+        kind: Parameters
+        cidrFunc: cidrsubnets
+        prefixField: desired.composite.resource.status.atFunction.cidr.partitions[0]
+        newBits:
+          - 1
+          - 1
+        outputField: status.atFunction.cidr.private.subnets
+    - step: cidr-subnets-public
+      functionRef:
+        name: upbound-function-cidr
+      input:
+        apiVersion: cidr.fn.crossplane.io/v1beta1
+        kind: Parameters
+        cidrFunc: cidrsubnets
+        prefixField: desired.composite.resource.status.atFunction.cidr.partitions[1]
+        newBits:
+          - 1
+          - 1
+        outputField: status.atFunction.cidr.public.subnets
+    # To debug the pipeline output you can generate a new resource which contains all attributes. Make sure to add function-go-templating to functions.yaml.
+    - step: render-templates
+      functionRef:
+        name: function-go-templating
+      input:
+        apiVersion: gotemplate.fn.crossplane.io/v1beta1
+        kind: GoTemplate
+        source: Inline
+        inline:
+          template: |
+            apiVersion: test.my-domain.com/v1alpha1
+            kind: DebugResource
+            metadata:
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: debug
+            debug:
+            {{ . | toYaml | nindent 2 }}
+            debugValue:
+            {{ index .desired.composite.resource.status.atFunction.cidr.public.subnets 0 | nindent 2 }}
