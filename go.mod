@@ -12,7 +12,7 @@ require (
 	github.com/tidwall/gjson v1.17.3
 	google.golang.org/protobuf v1.33.0
 	k8s.io/apimachinery v0.30.0
-	sigs.k8s.io/controller-tools v0.15.0
+	sigs.k8s.io/controller-tools v0.17.3
 )
 
 require (
