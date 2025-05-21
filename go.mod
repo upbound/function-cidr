@@ -5,7 +5,7 @@ go 1.22.1
 require (
 	github.com/alecthomas/kong v0.9.0
 	github.com/apparentlymart/go-cidr v1.1.0
-	github.com/crossplane/crossplane-runtime v1.15.1
+	github.com/crossplane/crossplane-runtime v1.20.0
 	github.com/crossplane/function-sdk-go v0.2.0
 	github.com/google/go-cmp v0.6.0
 	github.com/pkg/errors v0.9.1
