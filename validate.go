@@ -113,7 +113,7 @@ func ValidatePrefixParameter(prefix, prefixField string, oxr *resource.Composite
 		oxrPrefix, err := GetPrefixField(prefixField, oxr, req)
 		prefix = oxrPrefix
 		if err != nil {
-			return field.Required(field.NewPath("parameters"), errors.Wrapf(err, "cannot get prefix at prefixField "+prefixField).Error())
+			return field.Required(field.NewPath("parameters"), errors.Wrapf(err, "cannot get prefix at prefixField %s", prefixField).Error())
 		}
 	}
 
