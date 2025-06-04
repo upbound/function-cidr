@@ -15,8 +15,8 @@ on:
 env:
   # Common versions
   GO_VERSION: '1.22.1'
-  GOLANGCI_VERSION: 'v1.56.2'
-  DOCKER_BUILDX_VERSION: 'v0.11.2'
+  GOLANGCI_VERSION: 'v1.61.0'
+  DOCKER_BUILDX_VERSION: 'v0.23.0'
 
   # These environment variables are important to the Crossplane CLI install.sh
   # script. They determine what version it installs.
@@ -70,7 +70,7 @@ jobs:
   # We want to build most packages for the amd64 and arm64 architectures. To
   # speed this up we build single-platform packages in parallel. We then upload
   # those packages to GitHub as a build artifact. The push job downloads those
-  # artifacts and pushes them as a single multi-platform package. 
+  # artifacts and pushes them as a single multi-platform package.
   build:
     runs-on: ubuntu-24.04
     strategy:
@@ -118,7 +118,7 @@ jobs:
       - name: Upload Single-Platform Package
         uses: actions/upload-artifact@v4
         with:
-          name: packages
+          name: packages-${{ matrix.arch }}
           path: "*.xpkg"
           if-no-files-found: error
           retention-days: 1
@@ -137,8 +137,9 @@ jobs:
       - name: Download Single-Platform Packages
         uses: actions/download-artifact@v4
         with:
-          name: packages
           path: .
+          merge-multiple: true
+          pattern: "!*.dockerbuild" # This gets uploaded by docker/build-push-action but must be skipped: https://github.com/actions/toolkit/pull/1874
 
       - name: Setup the Crossplane CLI
         run: "curl -sL https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh | sh"
