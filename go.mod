@@ -11,7 +11,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/tidwall/gjson v1.17.3
 	google.golang.org/protobuf v1.36.11
-	k8s.io/apimachinery v0.35.1
+	k8s.io/apimachinery v0.35.3
 	sigs.k8s.io/controller-tools v0.20.1
 )
 
