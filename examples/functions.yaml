@@ -5,4 +5,4 @@ metadata:
   annotations:
     render.crossplane.io/runtime: Development
 # spec:
-#   package: xpkg.upbound.io/upbound/function-cidr:v0.3.0
+#   package: xpkg.upbound.io/upbound/function-cidr:v0.7.0
