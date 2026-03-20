@@ -10,19 +10,18 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/crossplane/crossplane-runtime/pkg/logging"
+	"github.com/crossplane/crossplane-runtime/v2/pkg/logging"
+	fnv1 "github.com/crossplane/function-sdk-go/proto/v1"
 	"github.com/crossplane/function-sdk-go/resource"
-
-	fnv1beta1 "github.com/crossplane/function-sdk-go/proto/v1beta1"
 )
 
 func TestRunFunction(t *testing.T) {
 	type args struct {
 		ctx context.Context
-		req *fnv1beta1.RunFunctionRequest
+		req *fnv1.RunFunctionRequest
 	}
 	type want struct {
-		rsp *fnv1beta1.RunFunctionResponse
+		rsp *fnv1.RunFunctionResponse
 		err error
 	}
 
@@ -35,7 +34,7 @@ func TestRunFunction(t *testing.T) {
 			reason: "should return the CIDR host of the request",
 			args: args{
 				ctx: context.Background(),
-				req: &fnv1beta1.RunFunctionRequest{
+				req: &fnv1.RunFunctionRequest{
 					Input: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"cidrFunc": {
@@ -58,13 +57,13 @@ func TestRunFunction(t *testing.T) {
 				},
 			},
 			want: want{
-				rsp: &fnv1beta1.RunFunctionResponse{
-					Desired: &fnv1beta1.State{
-						Composite: &fnv1beta1.Resource{
+				rsp: &fnv1.RunFunctionResponse{
+					Desired: &fnv1.State{
+						Composite: &fnv1.Resource{
 							Resource: resource.MustStructJSON(`{"apiVersion":"","kind":"","status": {"atFunction": {"cidr": "127.0.0.111"}}}`),
 						},
 					},
-					Meta: &fnv1beta1.ResponseMeta{
+					Meta: &fnv1.ResponseMeta{
 						Ttl: &durationpb.Duration{
 							Seconds: 60,
 						},
@@ -78,7 +77,7 @@ func TestRunFunction(t *testing.T) {
 			reason: "should return the cidr subnet of the request",
 			args: args{
 				ctx: context.Background(),
-				req: &fnv1beta1.RunFunctionRequest{
+				req: &fnv1.RunFunctionRequest{
 					Input: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"cidrFunc": {
@@ -114,13 +113,13 @@ func TestRunFunction(t *testing.T) {
 				},
 			},
 			want: want{
-				rsp: &fnv1beta1.RunFunctionResponse{
-					Desired: &fnv1beta1.State{
-						Composite: &fnv1beta1.Resource{
+				rsp: &fnv1.RunFunctionResponse{
+					Desired: &fnv1.State{
+						Composite: &fnv1.Resource{
 							Resource: resource.MustStructJSON(`{"apiVersion":"","kind":"","status": {"atFunction": {"cidr": "127.0.0.3/32"}}}`),
 						},
 					},
-					Meta: &fnv1beta1.ResponseMeta{
+					Meta: &fnv1.ResponseMeta{
 						Ttl: &durationpb.Duration{
 							Seconds: 60,
 						},
@@ -134,7 +133,7 @@ func TestRunFunction(t *testing.T) {
 			reason: "should return the CIDR netmask of the request",
 			args: args{
 				ctx: context.Background(),
-				req: &fnv1beta1.RunFunctionRequest{
+				req: &fnv1.RunFunctionRequest{
 					Input: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"cidrFunc": {
@@ -152,13 +151,13 @@ func TestRunFunction(t *testing.T) {
 				},
 			},
 			want: want{
-				rsp: &fnv1beta1.RunFunctionResponse{
-					Desired: &fnv1beta1.State{
-						Composite: &fnv1beta1.Resource{
+				rsp: &fnv1.RunFunctionResponse{
+					Desired: &fnv1.State{
+						Composite: &fnv1.Resource{
 							Resource: resource.MustStructJSON(`{"apiVersion":"","kind":"","status": {"atFunction": {"cidr": "255.255.255.0"}}}`),
 						},
 					},
-					Meta: &fnv1beta1.ResponseMeta{
+					Meta: &fnv1.ResponseMeta{
 						Ttl: &durationpb.Duration{
 							Seconds: 60,
 						},
@@ -172,7 +171,7 @@ func TestRunFunction(t *testing.T) {
 			reason: "should return the cidr subnet of the request",
 			args: args{
 				ctx: context.Background(),
-				req: &fnv1beta1.RunFunctionRequest{
+				req: &fnv1.RunFunctionRequest{
 					Input: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"cidrFunc": {
@@ -218,13 +217,13 @@ func TestRunFunction(t *testing.T) {
 				},
 			},
 			want: want{
-				rsp: &fnv1beta1.RunFunctionResponse{
-					Desired: &fnv1beta1.State{
-						Composite: &fnv1beta1.Resource{
+				rsp: &fnv1.RunFunctionResponse{
+					Desired: &fnv1.State{
+						Composite: &fnv1.Resource{
 							Resource: resource.MustStructJSON(`{"apiVersion":"","kind":"","status": {"atFunction": {"cidr": ["127.0.0.0/32", "127.0.0.16/28", "127.0.0.64/26"]}}}`),
 						},
 					},
-					Meta: &fnv1beta1.ResponseMeta{
+					Meta: &fnv1.ResponseMeta{
 						Ttl: &durationpb.Duration{
 							Seconds: 60,
 						},
@@ -238,7 +237,7 @@ func TestRunFunction(t *testing.T) {
 			reason: "should return the cidr subnet of the request",
 			args: args{
 				ctx: context.Background(),
-				req: &fnv1beta1.RunFunctionRequest{
+				req: &fnv1.RunFunctionRequest{
 					Input: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"cidrFunc": {
@@ -279,13 +278,13 @@ func TestRunFunction(t *testing.T) {
 				},
 			},
 			want: want{
-				rsp: &fnv1beta1.RunFunctionResponse{
-					Desired: &fnv1beta1.State{
-						Composite: &fnv1beta1.Resource{
+				rsp: &fnv1.RunFunctionResponse{
+					Desired: &fnv1.State{
+						Composite: &fnv1.Resource{
 							Resource: resource.MustStructJSON(`{"apiVersion":"","kind":"","status": {"atFunction": {"cidr": ["10.0.0.48/32", "10.0.0.49/32", "10.0.0.50/32"]}}}`),
 						},
 					},
-					Meta: &fnv1beta1.ResponseMeta{
+					Meta: &fnv1.ResponseMeta{
 						Ttl: &durationpb.Duration{
 							Seconds: 60,
 						},
@@ -299,7 +298,7 @@ func TestRunFunction(t *testing.T) {
 			reason: "should return multiple cidr subnets for the request",
 			args: args{
 				ctx: context.Background(),
-				req: &fnv1beta1.RunFunctionRequest{
+				req: &fnv1.RunFunctionRequest{
 					Input: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"cidrFunc": {
@@ -392,15 +391,15 @@ func TestRunFunction(t *testing.T) {
 				},
 			},
 			want: want{
-				rsp: &fnv1beta1.RunFunctionResponse{
-					Desired: &fnv1beta1.State{
-						Composite: &fnv1beta1.Resource{
+				rsp: &fnv1.RunFunctionResponse{
+					Desired: &fnv1.State{
+						Composite: &fnv1.Resource{
 							Resource: resource.MustStructJSON(`{"apiVersion":"","kind":"","status": {"atFunction": ` +
 								`{"cidr": {"10.10.0.0/24": ["10.10.0.0/32", "10.10.0.16/28", "10.10.0.64/26"],` +
 								`"10.12.0.0/24": ["10.12.0.0/28", "10.12.0.16/28", "10.12.0.32/28"]}}}}`),
 						},
 					},
-					Meta: &fnv1beta1.ResponseMeta{
+					Meta: &fnv1.ResponseMeta{
 						Ttl: &durationpb.Duration{
 							Seconds: 60,
 						},
@@ -414,7 +413,7 @@ func TestRunFunction(t *testing.T) {
 			reason: "should return the cidr subnet of the prefixField retrieved from the context",
 			args: args{
 				ctx: context.Background(),
-				req: &fnv1beta1.RunFunctionRequest{
+				req: &fnv1.RunFunctionRequest{
 					Context: &structpb.Struct {
 						Fields: map[string]*structpb.Value {
 							"apiextensions.crossplane.io/extra-resources": structpb.NewStructValue(resource.MustStructJSON(`{
@@ -471,9 +470,9 @@ func TestRunFunction(t *testing.T) {
 				},
 			},
 			want: want{
-				rsp: &fnv1beta1.RunFunctionResponse{
-					Desired: &fnv1beta1.State{
-						Composite: &fnv1beta1.Resource{
+				rsp: &fnv1.RunFunctionResponse{
+					Desired: &fnv1.State{
+						Composite: &fnv1.Resource{
 							Resource: resource.MustStructJSON(`{"apiVersion":"","kind":"","status": {"atFunction": {"cidr": {"partitions": ["10.0.0.0/21", "10.0.8.0/21"]}}}}`),
 						},
 					},
@@ -493,7 +492,7 @@ func TestRunFunction(t *testing.T) {
 							}`)),
 						},
 					},
-					Meta: &fnv1beta1.ResponseMeta{
+					Meta: &fnv1.ResponseMeta{
 						Ttl: &durationpb.Duration{
 							Seconds: 60,
 						},
@@ -507,9 +506,9 @@ func TestRunFunction(t *testing.T) {
 			reason: "should return the cidr subnet of the prefixField retrieved from the desired field",
 			args: args{
 				ctx: context.Background(),
-				req: &fnv1beta1.RunFunctionRequest{
-					Desired: &fnv1beta1.State{
-						Composite: &fnv1beta1.Resource{
+				req: &fnv1.RunFunctionRequest{
+					Desired: &fnv1.State{
+						Composite: &fnv1.Resource{
 							Resource: resource.MustStructJSON(`{
 								"apiVersion": "platform.upbound.io/v1alpha1",
 								"kind": "XCIDR",
@@ -563,9 +562,9 @@ func TestRunFunction(t *testing.T) {
 				},
 			},
 			want: want{
-				rsp: &fnv1beta1.RunFunctionResponse{
-					Desired: &fnv1beta1.State{
-						Composite: &fnv1beta1.Resource{
+				rsp: &fnv1.RunFunctionResponse{
+					Desired: &fnv1.State{
+						Composite: &fnv1.Resource{
 							Resource: resource.MustStructJSON(`{
 								"apiVersion":"",
 								"kind":"",
@@ -582,7 +581,7 @@ func TestRunFunction(t *testing.T) {
 							}`),
 						},
 					},
-					Meta: &fnv1beta1.ResponseMeta{
+					Meta: &fnv1.ResponseMeta{
 						Ttl: &durationpb.Duration{
 							Seconds: 60,
 						},

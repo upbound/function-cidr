@@ -12,7 +12,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
-	fnv1beta1 "github.com/crossplane/function-sdk-go/proto/v1beta1"
+	fnv1 "github.com/crossplane/function-sdk-go/proto/v1"
 	"github.com/crossplane/function-sdk-go/request"
 	"github.com/crossplane/function-sdk-go/resource"
 
@@ -46,7 +46,7 @@ func ExtractKeys(input string) []string {
 }
 
 // GetPrefixField returns the prefix value from the defined field
-func GetPrefixField(prefixField string, oxr *resource.Composite, req *fnv1beta1.RunFunctionRequest) (string, error) {
+func GetPrefixField(prefixField string, oxr *resource.Composite, req *fnv1.RunFunctionRequest) (string, error) {
 	prefix := ""
 	if strings.HasPrefix(prefixField, "desired.") {
 		if strings.HasPrefix(prefixField, "desired.composite.") {
@@ -102,7 +102,7 @@ func GetPrefixField(prefixField string, oxr *resource.Composite, req *fnv1beta1.
 }
 
 // ValidatePrefixParameter validates prefix parameter
-func ValidatePrefixParameter(prefix, prefixField string, oxr *resource.Composite, req *fnv1beta1.RunFunctionRequest) *field.Error {
+func ValidatePrefixParameter(prefix, prefixField string, oxr *resource.Composite, req *fnv1.RunFunctionRequest) *field.Error {
 	if len(prefix) > 0 && len(prefixField) > 0 {
 		return field.Required(field.NewPath("parameters"), "specify only one of prefix or prefixField to avoid ambiguous function input")
 	}
@@ -228,7 +228,7 @@ func ValidateMultiCidrPrefixParameter(p *v1beta1.Parameters, oxr *resource.Compo
 		return field.Required(field.NewPath("parameters"), "either multiPrefix or multiPrefixField function input is required")
 	}
 
-	var multiPrefixes []v1beta1.MultiPrefix = p.MultiPrefix
+	multiPrefixes := p.MultiPrefix
 	if len(p.MultiPrefix) == 0 {
 		err := oxr.Resource.GetValueInto(p.MultiPrefixField, &multiPrefixes)
 		if err != nil {
@@ -251,8 +251,8 @@ func ValidateMultiCidrPrefixParameter(p *v1beta1.Parameters, oxr *resource.Compo
 }
 
 // ValidateParameters validates the Parameters object.
-func ValidateParameters(p *v1beta1.Parameters, oxr *resource.Composite, req *fnv1beta1.RunFunctionRequest) *field.Error {
-	var cidrFunc string = p.CidrFunc
+func ValidateParameters(p *v1beta1.Parameters, oxr *resource.Composite, req *fnv1.RunFunctionRequest) *field.Error {
+	cidrFunc := p.CidrFunc
 	var err error
 
 	if p.CidrFuncField != "" {

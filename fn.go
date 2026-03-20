@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 
-	"github.com/crossplane/crossplane-runtime/pkg/errors"
-	"github.com/crossplane/crossplane-runtime/pkg/logging"
+	"github.com/crossplane/crossplane-runtime/v2/pkg/errors"
+	"github.com/crossplane/crossplane-runtime/v2/pkg/logging"
 
-	fnv1beta1 "github.com/crossplane/function-sdk-go/proto/v1beta1"
+	fnv1 "github.com/crossplane/function-sdk-go/proto/v1"
 	"github.com/crossplane/function-sdk-go/request"
 	"github.com/crossplane/function-sdk-go/response"
 
@@ -15,13 +15,13 @@ import (
 
 // Function runs CIDR calculations and composes CIDR resources.
 type Function struct {
-	fnv1beta1.UnimplementedFunctionRunnerServiceServer
+	fnv1.UnimplementedFunctionRunnerServiceServer
 
 	log logging.Logger
 }
 
 // RunFunction runs the Function.
-func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequest) (*fnv1beta1.RunFunctionResponse, error) {
+func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) (*fnv1.RunFunctionResponse, error) {
 	rsp := response.To(req, response.DefaultTTL)
 
 	input := &v1beta1.Parameters{}
@@ -66,7 +66,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 	}
 	log.Info("Running function", "cidrFunc", cidrFunc)
 
-	var prefix string = input.Prefix
+	prefix := input.Prefix
 	if cidrFunc != "multiprefixloop" && len(input.PrefixField) > 0 {
 		prefix, err = GetPrefixField(input.PrefixField, oxr, req)
 		if err != nil {
@@ -75,7 +75,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		}
 	}
 
-	var field string = input.OutputField
+	field := input.OutputField
 	if field == "" {
 		field = "status.atFunction.cidr"
 	}
@@ -248,10 +248,8 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 	// multiprefix is a convenience wrapper around cidrsubnets that	loops over a
 	// range of prefixes to create a list of subnets for each prefix.
 	case "multiprefixloop":
-		var subnetsByCidr map[string][]string = make(map[string][]string)
-		var multiPrefixes []v1beta1.MultiPrefix
-
-		multiPrefixes = input.MultiPrefix
+		subnetsByCidr := make(map[string][]string)
+		multiPrefixes := input.MultiPrefix
 		if len(input.MultiPrefixField) > 0 {
 			err = oxr.Resource.GetValueInto(input.MultiPrefixField, &multiPrefixes)
 			if err != nil {
