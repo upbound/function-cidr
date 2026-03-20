@@ -3,7 +3,7 @@ module github.com/upbound/function-cidr
 go 1.26.1
 
 require (
-	github.com/alecthomas/kong v0.9.0
+	github.com/alecthomas/kong v1.14.0
 	github.com/apparentlymart/go-cidr v1.1.0
 	github.com/crossplane/crossplane-runtime/v2 v2.2.0
 	github.com/crossplane/function-sdk-go v0.6.0
