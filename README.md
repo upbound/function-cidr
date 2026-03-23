@@ -33,7 +33,7 @@ kind: Function
 metadata:
   name: upbound-function-cidr
 spec:
-  package: xpkg.upbound.io/upbound/function-cidr:v0.4.0
+  package: xpkg.upbound.io/upbound/function-cidr:v0.7.0
 EOF
 ```
 

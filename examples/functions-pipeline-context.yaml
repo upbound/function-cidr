@@ -5,7 +5,7 @@ metadata:
   annotations:
     render.crossplane.io/runtime: Development
 # spec:
-#   package: xpkg.upbound.io/upbound/function-cidr:v0.3.0
+#   package: xpkg.upbound.io/upbound/function-cidr:v0.7.0
 ---
 apiVersion: pkg.crossplane.io/v1beta1
 kind: Function
@@ -14,7 +14,7 @@ metadata:
   annotations:
     render.crossplane.io/runtime-docker-cleanup: "Orphan"
 spec:
-  package: xpkg.upbound.io/crossplane-contrib/function-go-templating:v0.5.0
+  package: xpkg.upbound.io/crossplane-contrib/function-go-templating:v0.11.5
 ---
 apiVersion: pkg.crossplane.io/v1beta1
 kind: Function
@@ -26,4 +26,4 @@ metadata:
     #render.crossplane.io/runtime: Development
 spec:
   # This is ignored when using the Development runtime.
-  package: xpkg.upbound.io/crossplane-contrib/function-extra-resources:v0.0.3
+  package: xpkg.upbound.io/crossplane-contrib/function-extra-resources:v0.3.0
